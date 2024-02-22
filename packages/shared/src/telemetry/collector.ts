@@ -59,6 +59,8 @@ export class TelemetryCollector {
     if (!options.clerkVersion && typeof window === 'undefined') {
       // N/A in a server environment
       this.#metadata.clerkVersion = '';
+      // If in server environment, log out the telemetry notice
+      import('./notification').then(mod => mod.default()).catch(() => {});
     } else {
       this.#metadata.clerkVersion = options.clerkVersion ?? '';
     }

@@ -2,6 +2,12 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
+// if we end up storing anything else in this file, will need to extract this type
+// however, this is the only place it's used at the moment.
+interface ClerkConfigFile {
+  telemetryNoticeVersion: string;
+}
+
 // If we make significant changes to how telemetry is collected in the future, bump this version.
 const TELEMETRY_NOTICE_VERSION = '1';
 
@@ -44,14 +50,14 @@ async function notifyAboutTelemetry() {
 
   await fs.mkdir(configDir, { recursive: true });
 
-  let config = {};
+  let config: ClerkConfigFile = { telemetryNoticeVersion: '0' };
   try {
     config = JSON.parse(await fs.readFile(configFile, 'utf8'));
   } catch (err) {
     // File can't be read and parsed, continue
   }
 
-  if (parseInt(config.telemetryNoticeVersion, 10) >= TELEMETRY_NOTICE_VERSION) {
+  if (parseInt(config.telemetryNoticeVersion, 10) >= parseInt(TELEMETRY_NOTICE_VERSION)) {
     return;
   }
 
@@ -62,12 +68,10 @@ async function notifyAboutTelemetry() {
   await fs.writeFile(configFile, JSON.stringify(config, null, '\t'));
 }
 
-async function main() {
+export default async function notify() {
   try {
     await notifyAboutTelemetry();
   } catch {
-    // Do nothing, we _really_ don't want to log errors during install.
+    // Do nothing, we don't want to log errors around a telemetry notice.
   }
 }
-
-main();
